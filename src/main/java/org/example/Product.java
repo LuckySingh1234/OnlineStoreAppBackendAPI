@@ -434,4 +434,104 @@ public class Product {
         }
         return "true";
     }
+
+    public static String editProduct(String productId, String name, String price, String stockQuantity, String category, String imageUrl) {
+        try {
+            String filePath = "F:/OnlineStoreAppBackendAPI/data/OnlineStoreAppDatabase.xlsx";
+            Workbook workbook;
+            if (Files.exists(Paths.get(filePath))) {
+                FileInputStream fis = new FileInputStream(filePath);
+                workbook = WorkbookFactory.create(fis);
+                Sheet sheet = workbook.getSheet("Products");
+                StringBuilder excelErrors = new StringBuilder();
+                if (sheet != null) {
+                    int rowNumToBeEdited = -1;
+                    for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                        Row row = sheet.getRow(i);
+
+                        Cell cell = row.getCell(0);
+                        String storedProductId;
+                        if (cell == null) {
+                            excelErrors.append("Product Id is null at Row: ").append(i + 1).append("\n");
+                            continue;
+                        }
+                        if (cell.getCellType() == CellType.STRING) {
+                            storedProductId = cell.getStringCellValue();
+                        } else {
+                            storedProductId = String.valueOf(cell.getNumericCellValue());
+                        }
+                        if (!storedProductId.matches("^P#[0-9A-Z]{5}$")) {
+                            excelErrors.append("Product Id does not match the pattern at Row: ").append(i + 1).append("\n");
+                            continue;
+                        }
+                        if (!storedProductId.equals(productId)) {
+                            rowNumToBeEdited = i;
+                            break;
+                        }
+                    }
+                    if (rowNumToBeEdited == -1) {
+                        return "Product Id does not exist";
+                    }
+                    if (!productId.matches("^P#[0-9A-Z]{5}$")) {
+                        return "Product Id does follow the pattern";
+                    }
+                    if (!name.matches("^[A-Za-z0-9\s-]{1,20}$")) {
+                        return "Product Name does follow the pattern";
+                    }
+                    try {
+                        Double priceDouble = Double.parseDouble(price);
+                        if (priceDouble < 1) {
+                            return "Product Price cannot be negative or zero";
+                        }
+                    } catch (Exception e) {
+                        return "Product Price should be a decimal value";
+                    }
+                    try {
+                        Integer stockQuantityInt = Integer.parseInt(stockQuantity);
+                        if (stockQuantityInt <= 0) {
+                            return "Product Stock Quantity cannot be negative or zero";
+                        }
+                    } catch (Exception e) {
+                        return "Product Stock Quantity should be an integer value";
+                    }
+                    if (!categories.contains(category)) {
+                        return "Product Category is invalid";
+                    }
+                    Row row = sheet.createRow(rowNumToBeEdited - 1);
+                    Product p = new Product(productId, name, Double.parseDouble(price),
+                            Integer.parseInt(stockQuantity), category, "ACTIVE", imageUrl);
+                    Cell cell = row.createCell(0);
+                    cell.setCellValue(p.getProductId());
+                    cell = row.createCell(1);
+                    cell.setCellValue(p.getName());
+                    cell = row.createCell(2);
+                    cell.setCellValue(p.getPrice());
+                    cell = row.createCell(3);
+                    cell.setCellValue(p.getStockQuantity());
+                    cell = row.createCell(4);
+                    cell.setCellValue(p.getCategory());
+                    cell = row.createCell(5);
+                    cell.setCellValue(p.getStatus());
+                    cell = row.createCell(6);
+                    cell.setCellValue(p.getImageUrl());
+                    // Write to Excel file
+                    try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
+                        workbook.write(outputStream);
+                        System.out.println("Excel file created successfully at the below location");
+                        System.out.println(Paths.get(filePath).toAbsolutePath());
+                    } catch (IOException e) {
+                        System.out.println("Error creating Excel file: " + e.getMessage());
+                    }
+                } else {
+                    return "Products sheet is not available in the excel file";
+                }
+                System.err.println(excelErrors);
+            } else {
+                return "File does not exist at the specified path";
+            }
+        } catch (IOException e) {
+            return "Error opening Excel file: " + e.getMessage();
+        }
+        return "true";
+    }
 }
