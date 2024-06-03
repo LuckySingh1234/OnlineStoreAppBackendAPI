@@ -134,4 +134,122 @@ public class MyResource {
             return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
         }
     }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("removeProduct")
+    public Response removeProduct(String reqData) {
+        JSONObject json = new JSONObject(reqData);
+        String productId = json.getString("productId");
+        String productRemovedResponse = Product.removeProduct(productId);
+        JSONObject responseJson = new JSONObject();
+        if (productRemovedResponse.equals("true")) {
+            responseJson.put("success", "true");
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        } else {
+            responseJson.put("failure", "true");
+            responseJson.put("errorMessage", productRemovedResponse);
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("getCustomers")
+    public Response fetchCustomers() {
+        List<Customer> customers = Customer.fetchCustomers();
+        Gson gson = new Gson();
+        JsonElement customersJson = gson.toJsonTree(customers);
+        return Response.ok(customersJson.toString(), MediaType.APPLICATION_JSON).build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("getCustomerById")
+    public Response fetchCustomerById(String reqData) {
+        JSONObject json = new JSONObject(reqData);
+        String customerId = json.getString("customerId");
+        Customer customer = Customer.fetchCustomerById(customerId);
+        Gson gson = new Gson();
+        JsonElement customerJsonElement = gson.toJsonTree(customer);
+        if (customerJsonElement.isJsonObject()) {
+            JsonObject customerJsonObject = customerJsonElement.getAsJsonObject();
+            customerJsonObject.addProperty("success", "true");
+            return Response.ok(gson.toJson(customerJsonElement), MediaType.APPLICATION_JSON).build();
+        } else {
+            JsonObject resp = new JsonObject();
+            resp.addProperty("error", "true");
+            resp.addProperty("errorMessage", "Couldn't fetch product");
+            return Response.ok(gson.toJson(resp), MediaType.APPLICATION_JSON).build();
+        }
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("addCustomer")
+    public Response addCustomer(String reqData) {
+        JSONObject json = new JSONObject(reqData);
+        String fullName = json.getString("fullName");
+        String mobile = json.getString("mobile");
+        String email = json.getString("email");
+        String password = json.getString("password");
+        String address = json.getString("address");
+        String customerAddedResponse = Customer.addCustomer(fullName, mobile, email, password, address);
+        JSONObject responseJson = new JSONObject();
+        if (customerAddedResponse.equals("true")) {
+            responseJson.put("success", "true");
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        } else {
+            responseJson.put("failure", "true");
+            responseJson.put("errorMessage", customerAddedResponse);
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        }
+    }
+
+//    @POST
+//    @Produces(MediaType.APPLICATION_JSON)
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Path("editProduct")
+//    public Response editProduct(String reqData) {
+//        JSONObject json = new JSONObject(reqData);
+//        String productId = json.getString("productId");
+//        String name = json.getString("name");
+//        String price = json.getString("price");
+//        String stockQuantity = json.getString("stockQuantity");
+//        String category = json.getString("category");
+//        String imageUrl = json.getString("imageUrl");
+//        String productEditedResponse = Product.editProduct(productId, name, price, stockQuantity, category, imageUrl);
+//        JSONObject responseJson = new JSONObject();
+//        if (productEditedResponse.equals("true")) {
+//            responseJson.put("success", "true");
+//            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+//        } else {
+//            responseJson.put("failure", "true");
+//            responseJson.put("errorMessage", productEditedResponse);
+//            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+//        }
+//    }
+//
+//    @POST
+//    @Produces(MediaType.APPLICATION_JSON)
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Path("removeProduct")
+//    public Response removeProduct(String reqData) {
+//        JSONObject json = new JSONObject(reqData);
+//        String productId = json.getString("productId");
+//        String productRemovedResponse = Product.removeProduct(productId);
+//        JSONObject responseJson = new JSONObject();
+//        if (productRemovedResponse.equals("true")) {
+//            responseJson.put("success", "true");
+//            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+//        } else {
+//            responseJson.put("failure", "true");
+//            responseJson.put("errorMessage", productRemovedResponse);
+//            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+//        }
+//    }
 }

@@ -464,7 +464,7 @@ public class Product {
                             excelErrors.append("Product Id does not match the pattern at Row: ").append(i + 1).append("\n");
                             continue;
                         }
-                        if (!storedProductId.equals(productId)) {
+                        if (storedProductId.equals(productId)) {
                             rowNumToBeEdited = i;
                             break;
                         }
@@ -497,7 +497,7 @@ public class Product {
                     if (!categories.contains(category)) {
                         return "Product Category is invalid";
                     }
-                    Row row = sheet.createRow(rowNumToBeEdited - 1);
+                    Row row = sheet.createRow(rowNumToBeEdited);
                     Product p = new Product(productId, name, Double.parseDouble(price),
                             Integer.parseInt(stockQuantity), category, "ACTIVE", imageUrl);
                     Cell cell = row.createCell(0);
@@ -520,7 +520,82 @@ public class Product {
                         System.out.println("Excel file created successfully at the below location");
                         System.out.println(Paths.get(filePath).toAbsolutePath());
                     } catch (IOException e) {
-                        System.out.println("Error creating Excel file: " + e.getMessage());
+                        return "Error creating Excel file: " + e.getMessage();
+                    }
+                } else {
+                    return "Products sheet is not available in the excel file";
+                }
+                System.err.println(excelErrors);
+            } else {
+                return "File does not exist at the specified path";
+            }
+        } catch (IOException e) {
+            return "Error opening Excel file: " + e.getMessage();
+        }
+        return "true";
+    }
+
+    public static String removeProduct(String productId) {
+        try {
+            String filePath = "F:/OnlineStoreAppBackendAPI/data/OnlineStoreAppDatabase.xlsx";
+            Workbook workbook;
+            if (Files.exists(Paths.get(filePath))) {
+                FileInputStream fis = new FileInputStream(filePath);
+                workbook = WorkbookFactory.create(fis);
+                Sheet sheet = workbook.getSheet("Products");
+                StringBuilder excelErrors = new StringBuilder();
+                if (sheet != null) {
+                    int rowNumToBeRemoved = -1;
+                    for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                        Row row = sheet.getRow(i);
+
+                        Cell cell = row.getCell(0);
+                        String storedProductId;
+                        if (cell == null) {
+                            excelErrors.append("Product Id is null at Row: ").append(i + 1).append("\n");
+                            continue;
+                        }
+                        if (cell.getCellType() == CellType.STRING) {
+                            storedProductId = cell.getStringCellValue();
+                        } else {
+                            storedProductId = String.valueOf(cell.getNumericCellValue());
+                        }
+                        if (!storedProductId.matches("^P#[0-9A-Z]{5}$")) {
+                            excelErrors.append("Product Id does not match the pattern at Row: ").append(i + 1).append("\n");
+                            continue;
+                        }
+                        if (storedProductId.equals(productId)) {
+                            rowNumToBeRemoved = i;
+                            break;
+                        }
+                    }
+                    if (rowNumToBeRemoved == -1) {
+                        return "Product Id does not exist";
+                    }
+                    if (!productId.matches("^P#[0-9A-Z]{5}$")) {
+                        return "Product Id does follow the pattern";
+                    }
+                    int lastRowNum = sheet.getLastRowNum();
+                    // Check if the row to be deleted exists in the sheet
+                    if (rowNumToBeRemoved >= 0 && rowNumToBeRemoved < lastRowNum) {
+                        // Shift rows up
+                        sheet.shiftRows(rowNumToBeRemoved + 1, lastRowNum, -1);
+                    }
+
+                    // If the row to be deleted is the last row, simply remove it
+                    if (rowNumToBeRemoved == lastRowNum) {
+                        Row removingRow = sheet.getRow(rowNumToBeRemoved);
+                        if (removingRow != null) {
+                            sheet.removeRow(removingRow);
+                        }
+                    }
+                    // Write to Excel file
+                    try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
+                        workbook.write(outputStream);
+                        System.out.println("Excel file created successfully at the below location");
+                        System.out.println(Paths.get(filePath).toAbsolutePath());
+                    } catch (IOException e) {
+                        return "Error creating Excel file: " + e.getMessage();
                     }
                 } else {
                     return "Products sheet is not available in the excel file";
