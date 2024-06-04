@@ -154,6 +154,26 @@ public class MyResource {
         }
     }
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("customerLogin")
+    public Response customerLogin(String userData) {
+        JSONObject json = new JSONObject(userData);
+        String email = json.getString("email");
+        String password = json.getString("password");
+
+        User user = new User(email, password);
+        Customer signedInCustomer = Customer.login(user);
+        JSONObject responseJson = new JSONObject();
+        if (signedInCustomer != null) {
+            Gson gson = new Gson();
+            JsonElement customersJson = gson.toJsonTree(signedInCustomer);
+            return Response.ok(customersJson.toString(), MediaType.APPLICATION_JSON).build();
+        }
+        return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -234,22 +254,22 @@ public class MyResource {
         }
     }
 
-//    @POST
-//    @Produces(MediaType.APPLICATION_JSON)
-//    @Consumes(MediaType.APPLICATION_JSON)
-//    @Path("removeProduct")
-//    public Response removeProduct(String reqData) {
-//        JSONObject json = new JSONObject(reqData);
-//        String productId = json.getString("productId");
-//        String productRemovedResponse = Product.removeProduct(productId);
-//        JSONObject responseJson = new JSONObject();
-//        if (productRemovedResponse.equals("true")) {
-//            responseJson.put("success", "true");
-//            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
-//        } else {
-//            responseJson.put("failure", "true");
-//            responseJson.put("errorMessage", productRemovedResponse);
-//            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
-//        }
-//    }
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("removeCustomer")
+    public Response removeCustomer(String reqData) {
+        JSONObject json = new JSONObject(reqData);
+        String customerId = json.getString("customerId");
+        String customerRemovedResponse = Customer.removeCustomer(customerId);
+        JSONObject responseJson = new JSONObject();
+        if (customerRemovedResponse.equals("true")) {
+            responseJson.put("success", "true");
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        } else {
+            responseJson.put("failure", "true");
+            responseJson.put("errorMessage", customerRemovedResponse);
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        }
+    }
 }

@@ -30,6 +30,56 @@ public class Customer {
     private String address;
     private String status;
 
+    public static Customer login(User user) {
+        try {
+            String filePath = "F:/OnlineStoreAppBackendAPI/data/OnlineStoreAppDatabase.xlsx";
+            Workbook workbook;
+            FileInputStream fis = new FileInputStream(filePath);
+            workbook = WorkbookFactory.create(fis);
+            Sheet sheet = workbook.getSheet("Customers");
+            if (sheet != null) {
+                for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                    Row row = sheet.getRow(i);
+
+                    Cell cell = row.getCell(3);
+                    String email = cell.getStringCellValue();
+
+                    cell = row.getCell(4);
+                    String password;
+                    if (cell.getCellType() == CellType.STRING) {
+                        password = cell.getStringCellValue();
+                    } else {
+                        password = String.valueOf((int)(cell.getNumericCellValue()));
+                    }
+
+                    cell = row.getCell(6);
+                    String status = cell.getStringCellValue();
+
+                    if (user.getEmail().equals(email) && user.getPassword().equals(password) && status.equals("ACTIVE")) {
+                        cell = row.getCell(0);
+                        String customerId = cell.getStringCellValue();
+
+                        cell = row.getCell(1);
+                        String fullName = cell.getStringCellValue();
+
+                        cell = row.getCell(2);
+                        String mobile = cell.getStringCellValue();
+
+                        cell = row.getCell(5);
+                        String address = cell.getStringCellValue();
+
+                        Customer customer = new Customer(customerId, fullName, mobile, email, password, address, status);
+                        return customer;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Exception occurred while manager login");
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static List<Customer> fetchCustomers() {
         List<Customer> customers = new ArrayList<>();
         try {
@@ -509,6 +559,81 @@ public class Customer {
                     }
                 } else {
                     return "Customers sheet is not available in the excel file";
+                }
+                System.err.println(excelErrors);
+            } else {
+                return "File does not exist at the specified path";
+            }
+        } catch (IOException e) {
+            return "Error opening Excel file: " + e.getMessage();
+        }
+        return "true";
+    }
+
+    public static String removeCustomer(String customerId) {
+        try {
+            String filePath = "F:/OnlineStoreAppBackendAPI/data/OnlineStoreAppDatabase.xlsx";
+            Workbook workbook;
+            if (Files.exists(Paths.get(filePath))) {
+                FileInputStream fis = new FileInputStream(filePath);
+                workbook = WorkbookFactory.create(fis);
+                Sheet sheet = workbook.getSheet("Customers");
+                StringBuilder excelErrors = new StringBuilder();
+                if (sheet != null) {
+                    int rowNumToBeRemoved = -1;
+                    for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                        Row row = sheet.getRow(i);
+
+                        Cell cell = row.getCell(0);
+                        String storedCustomerId;
+                        if (cell == null) {
+                            excelErrors.append("Customer Id is null at Row: ").append(i + 1).append("\n");
+                            continue;
+                        }
+                        if (cell.getCellType() == CellType.STRING) {
+                            storedCustomerId = cell.getStringCellValue();
+                        } else {
+                            storedCustomerId = String.valueOf(cell.getNumericCellValue());
+                        }
+                        if (!storedCustomerId.matches("^C#[0-9]{5}$")) {
+                            excelErrors.append("Customer Id does not match the pattern at Row: ").append(i + 1).append("\n");
+                            continue;
+                        }
+                        if (storedCustomerId.equals(customerId)) {
+                            rowNumToBeRemoved = i;
+                            break;
+                        }
+                    }
+                    if (rowNumToBeRemoved == -1) {
+                        return "Customer Id does not exist";
+                    }
+                    if (!customerId.matches("^C#[0-9]{5}$")) {
+                        return "Customer Id does follow the pattern";
+                    }
+                    int lastRowNum = sheet.getLastRowNum();
+                    // Check if the row to be deleted exists in the sheet
+                    if (rowNumToBeRemoved >= 0 && rowNumToBeRemoved < lastRowNum) {
+                        // Shift rows up
+                        sheet.shiftRows(rowNumToBeRemoved + 1, lastRowNum, -1);
+                    }
+
+                    // If the row to be deleted is the last row, simply remove it
+                    if (rowNumToBeRemoved == lastRowNum) {
+                        Row removingRow = sheet.getRow(rowNumToBeRemoved);
+                        if (removingRow != null) {
+                            sheet.removeRow(removingRow);
+                        }
+                    }
+                    // Write to Excel file
+                    try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
+                        workbook.write(outputStream);
+                        System.out.println("Excel file created successfully at the below location");
+                        System.out.println(Paths.get(filePath).toAbsolutePath());
+                    } catch (IOException e) {
+                        return "Error creating Excel file: " + e.getMessage();
+                    }
+                } else {
+                    return "Customer sheet is not available in the excel file";
                 }
                 System.err.println(excelErrors);
             } else {
