@@ -210,30 +210,30 @@ public class MyResource {
         }
     }
 
-//    @POST
-//    @Produces(MediaType.APPLICATION_JSON)
-//    @Consumes(MediaType.APPLICATION_JSON)
-//    @Path("editProduct")
-//    public Response editProduct(String reqData) {
-//        JSONObject json = new JSONObject(reqData);
-//        String productId = json.getString("productId");
-//        String name = json.getString("name");
-//        String price = json.getString("price");
-//        String stockQuantity = json.getString("stockQuantity");
-//        String category = json.getString("category");
-//        String imageUrl = json.getString("imageUrl");
-//        String productEditedResponse = Product.editProduct(productId, name, price, stockQuantity, category, imageUrl);
-//        JSONObject responseJson = new JSONObject();
-//        if (productEditedResponse.equals("true")) {
-//            responseJson.put("success", "true");
-//            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
-//        } else {
-//            responseJson.put("failure", "true");
-//            responseJson.put("errorMessage", productEditedResponse);
-//            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
-//        }
-//    }
-//
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("editCustomer")
+    public Response editCustomer(String reqData) {
+        JSONObject json = new JSONObject(reqData);
+        String customerId = json.getString("customerId");
+        String fullName = json.getString("fullName");
+        String mobile = json.getString("mobile");
+        String email = json.getString("email");
+        String password = json.getString("password");
+        String address = json.getString("address");
+        String customerEditedResponse = Customer.editCustomer(customerId, fullName, mobile, email, password, address);
+        JSONObject responseJson = new JSONObject();
+        if (customerEditedResponse.equals("true")) {
+            responseJson.put("success", "true");
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        } else {
+            responseJson.put("failure", "true");
+            responseJson.put("errorMessage", customerEditedResponse);
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        }
+    }
+
 //    @POST
 //    @Produces(MediaType.APPLICATION_JSON)
 //    @Consumes(MediaType.APPLICATION_JSON)

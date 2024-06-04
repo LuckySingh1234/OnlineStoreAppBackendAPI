@@ -426,4 +426,97 @@ public class Customer {
         }
         return "true";
     }
+
+    public static String editCustomer(String customerId, String fullName, String mobile, String email, String password, String address) {
+        try {
+            String filePath = "F:/OnlineStoreAppBackendAPI/data/OnlineStoreAppDatabase.xlsx";
+            Workbook workbook;
+            if (Files.exists(Paths.get(filePath))) {
+                FileInputStream fis = new FileInputStream(filePath);
+                workbook = WorkbookFactory.create(fis);
+                Sheet sheet = workbook.getSheet("Customers");
+                StringBuilder excelErrors = new StringBuilder();
+                if (sheet != null) {
+                    int rowNumToBeEdited = -1;
+                    for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                        Row row = sheet.getRow(i);
+
+                        Cell cell = row.getCell(0);
+                        String storedCustomerId;
+                        if (cell == null) {
+                            excelErrors.append("Customer Id is null at Row: ").append(i + 1).append("\n");
+                            continue;
+                        }
+                        if (cell.getCellType() == CellType.STRING) {
+                            storedCustomerId = cell.getStringCellValue();
+                        } else {
+                            storedCustomerId = String.valueOf(cell.getNumericCellValue());
+                        }
+                        if (!storedCustomerId.matches("^C#[0-9]{5}$")) {
+                            excelErrors.append("Customer Id does not match the pattern at Row: ").append(i + 1).append("\n");
+                            continue;
+                        }
+                        if (storedCustomerId.equals(customerId)) {
+                            rowNumToBeEdited = i;
+                            break;
+                        }
+                    }
+                    if (rowNumToBeEdited == -1) {
+                        return "Customer Id does not exist";
+                    }
+                    if (!customerId.matches("^C#[0-9]{5}$")) {
+                        return "Customer Id does follow the pattern";
+                    }
+                    if (!fullName.matches("^[A-Za-z\s]{1,20}$")) {
+                        return "Customer Name does follow the pattern";
+                    }
+                    if (!mobile.matches("^[0-9]{10}$")) {
+                        return "Customer Mobile does follow the pattern";
+                    }
+                    if (!email.matches("^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$")) {
+                        return "Customer email does follow the pattern";
+                    }
+                    if (password.isEmpty()) {
+                        return "Customer Password cannot be empty";
+                    }
+                    if (address.isEmpty()) {
+                        return "Customer Address cannot be empty";
+                    }
+
+                    Row row = sheet.createRow(rowNumToBeEdited);
+                    Customer c = new Customer(customerId, fullName, mobile, email, password, address, "ACTIVE");
+                    Cell cell = row.createCell(0);
+                    cell.setCellValue(c.getCustomerId());
+                    cell = row.createCell(1);
+                    cell.setCellValue(c.getFullName());
+                    cell = row.createCell(2);
+                    cell.setCellValue(c.getMobile());
+                    cell = row.createCell(3);
+                    cell.setCellValue(c.getEmail());
+                    cell = row.createCell(4);
+                    cell.setCellValue(c.getPassword());
+                    cell = row.createCell(5);
+                    cell.setCellValue(c.getAddress());
+                    cell = row.createCell(6);
+                    cell.setCellValue(c.getStatus());
+                    // Write to Excel file
+                    try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
+                        workbook.write(outputStream);
+                        System.out.println("Excel file created successfully at the below location");
+                        System.out.println(Paths.get(filePath).toAbsolutePath());
+                    } catch (IOException e) {
+                        return "Error creating Excel file: " + e.getMessage();
+                    }
+                } else {
+                    return "Customers sheet is not available in the excel file";
+                }
+                System.err.println(excelErrors);
+            } else {
+                return "File does not exist at the specified path";
+            }
+        } catch (IOException e) {
+            return "Error opening Excel file: " + e.getMessage();
+        }
+        return "true";
+    }
 }
