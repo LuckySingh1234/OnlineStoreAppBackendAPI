@@ -176,7 +176,7 @@ public class Customer {
 
                         cell = row.getCell(5);
                         if (cell == null) {
-                            excelErrors.append("Customer Password is null at Row: ").append(i + 1).append("\n");
+                            excelErrors.append("Customer Address is null at Row: ").append(i + 1).append("\n");
                             continue;
                         }
                         String address;

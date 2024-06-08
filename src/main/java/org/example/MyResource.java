@@ -93,13 +93,12 @@ public class MyResource {
     @Path("addProduct")
     public Response addProduct(String reqData) {
         JSONObject json = new JSONObject(reqData);
-        String productId = json.getString("productId");
         String name = json.getString("name");
         String price = json.getString("price");
         String stockQuantity = json.getString("stockQuantity");
         String category = json.getString("category");
         String imageUrl = json.getString("imageUrl");
-        String productAddedResponse = Product.addProduct(productId, name, price, stockQuantity, category, imageUrl);
+        String productAddedResponse = Product.addProduct(name, price, stockQuantity, category, imageUrl);
         JSONObject responseJson = new JSONObject();
         if (productAddedResponse.equals("true")) {
             responseJson.put("success", "true");
@@ -202,7 +201,7 @@ public class MyResource {
         } else {
             JsonObject resp = new JsonObject();
             resp.addProperty("error", "true");
-            resp.addProperty("errorMessage", "Couldn't fetch product");
+            resp.addProperty("errorMessage", "Couldn't fetch customer");
             return Response.ok(gson.toJson(resp), MediaType.APPLICATION_JSON).build();
         }
     }
@@ -269,6 +268,78 @@ public class MyResource {
         } else {
             responseJson.put("failure", "true");
             responseJson.put("errorMessage", customerRemovedResponse);
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("getManagers")
+    public Response fetchManagers() {
+        List<Manager> managers = Manager.fetchManagers();
+        Gson gson = new Gson();
+        JsonElement managersJson = gson.toJsonTree(managers);
+        return Response.ok(managersJson.toString(), MediaType.APPLICATION_JSON).build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("getManagerByEmail")
+    public Response fetchManagerByEmail(String reqData) {
+        JSONObject json = new JSONObject(reqData);
+        String email = json.getString("email");
+        Manager manager = Manager.fetchManagerByEmail(email);
+        Gson gson = new Gson();
+        JsonElement managerJsonElement = gson.toJsonTree(manager);
+        if (managerJsonElement.isJsonObject()) {
+            JsonObject managerJsonObject = managerJsonElement.getAsJsonObject();
+            managerJsonObject.addProperty("success", "true");
+            return Response.ok(gson.toJson(managerJsonElement), MediaType.APPLICATION_JSON).build();
+        } else {
+            JsonObject resp = new JsonObject();
+            resp.addProperty("error", "true");
+            resp.addProperty("errorMessage", "Couldn't fetch manager");
+            return Response.ok(gson.toJson(resp), MediaType.APPLICATION_JSON).build();
+        }
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("addManager")
+    public Response addManager(String reqData) {
+        JSONObject json = new JSONObject(reqData);
+        String email = json.getString("email");
+        String password = json.getString("password");
+        String managerAddedResponse = Manager.addManager(email, password);
+        JSONObject responseJson = new JSONObject();
+        if (managerAddedResponse.equals("true")) {
+            responseJson.put("success", "true");
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        } else {
+            responseJson.put("failure", "true");
+            responseJson.put("errorMessage", managerAddedResponse);
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        }
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("removeManager")
+    public Response removeManager(String reqData) {
+        JSONObject json = new JSONObject(reqData);
+        String email = json.getString("email");
+        String managerRemovedResponse = Manager.removeManager(email);
+        JSONObject responseJson = new JSONObject();
+        if (managerRemovedResponse.equals("true")) {
+            responseJson.put("success", "true");
+            return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
+        } else {
+            responseJson.put("failure", "true");
+            responseJson.put("errorMessage", managerRemovedResponse);
             return Response.ok(responseJson.toString(), MediaType.APPLICATION_JSON).build();
         }
     }

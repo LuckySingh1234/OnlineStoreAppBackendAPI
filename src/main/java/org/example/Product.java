@@ -56,7 +56,7 @@ public class Product {
                             } else {
                                 productId = String.valueOf(cell.getNumericCellValue());
                             }
-                            if (!productId.matches("^P#[0-9A-Z]{5}$")) {
+                            if (!productId.matches("^P#[0-9]{5}$")) {
                                 excelErrors.append("Product Id does not match the pattern at Row: ").append(i + 1).append("\n");
                                 continue;
                             }
@@ -208,7 +208,7 @@ public class Product {
                         } else {
                             storedProductId = String.valueOf(cell.getNumericCellValue());
                         }
-                        if (!storedProductId.matches("^P#[0-9A-Z]{5}$")) {
+                        if (!storedProductId.matches("^P#[0-9]{5}$")) {
                             excelErrors.append("Product Id does not match the pattern at Row: ").append(i + 1).append("\n");
                             continue;
                         }
@@ -336,7 +336,7 @@ public class Product {
         return null;
     }
 
-    public static String addProduct(String productId, String name, String price, String stockQuantity, String category, String imageUrl) {
+    public static String addProduct(String name, String price, String stockQuantity, String category, String imageUrl) {
         List<String> productIds = new ArrayList<>();
         try {
             String filePath = "F:/OnlineStoreAppBackendAPI/data/OnlineStoreAppDatabase.xlsx";
@@ -367,12 +367,13 @@ public class Product {
                         }
                         productIds.add(storedProductId);
                     }
-                    if (productIds.contains(productId)) {
-                        return "Product with same product id already exists";
-                    }
-                    if (!productId.matches("^P#[0-9A-Z]{5}$")) {
-                        return "Product Id does follow the pattern";
-                    }
+                    List<Integer> allProductId = new ArrayList<>(productIds.stream().map(id -> id.split("#")[1])
+                            .map(Integer::parseInt)
+                            .toList());
+                    allProductId.sort(null);
+                    int lastId = allProductId.isEmpty() ? 0 : allProductId.get(allProductId.size() - 1);
+                    String id = String.format("%0" + 5 + "d", lastId + 1);
+                    String newProductId = "P#" + id;
                     if (!name.matches("^[A-Za-z0-9\s-]{1,20}$")) {
                         return "Product Name does follow the pattern";
                     }
@@ -396,7 +397,7 @@ public class Product {
                         return "Product Category is invalid";
                     }
 
-                    Product p = new Product(productId, name, Double.parseDouble(price),
+                    Product p = new Product(newProductId, name, Double.parseDouble(price),
                             Integer.parseInt(stockQuantity), category, "ACTIVE", imageUrl);
                     int rowNum = sheet.getLastRowNum() + 1;
                     Row row = sheet.createRow(rowNum);
@@ -460,7 +461,7 @@ public class Product {
                         } else {
                             storedProductId = String.valueOf(cell.getNumericCellValue());
                         }
-                        if (!storedProductId.matches("^P#[0-9A-Z]{5}$")) {
+                        if (!storedProductId.matches("^P#[0-9]{5}$")) {
                             excelErrors.append("Product Id does not match the pattern at Row: ").append(i + 1).append("\n");
                             continue;
                         }
@@ -472,7 +473,7 @@ public class Product {
                     if (rowNumToBeEdited == -1) {
                         return "Product Id does not exist";
                     }
-                    if (!productId.matches("^P#[0-9A-Z]{5}$")) {
+                    if (!productId.matches("^P#[0-9]{5}$")) {
                         return "Product Id does follow the pattern";
                     }
                     if (!name.matches("^[A-Za-z0-9\s-]{1,20}$")) {
@@ -560,7 +561,7 @@ public class Product {
                         } else {
                             storedProductId = String.valueOf(cell.getNumericCellValue());
                         }
-                        if (!storedProductId.matches("^P#[0-9A-Z]{5}$")) {
+                        if (!storedProductId.matches("^P#[0-9]{5}$")) {
                             excelErrors.append("Product Id does not match the pattern at Row: ").append(i + 1).append("\n");
                             continue;
                         }
@@ -572,7 +573,7 @@ public class Product {
                     if (rowNumToBeRemoved == -1) {
                         return "Product Id does not exist";
                     }
-                    if (!productId.matches("^P#[0-9A-Z]{5}$")) {
+                    if (!productId.matches("^P#[0-9]{5}$")) {
                         return "Product Id does follow the pattern";
                     }
                     int lastRowNum = sheet.getLastRowNum();
